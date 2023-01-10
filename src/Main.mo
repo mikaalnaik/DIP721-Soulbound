@@ -9,6 +9,7 @@ import Option "mo:base/Option";
 import Bool "mo:base/Bool";
 import Principal "mo:base/Principal";
 import Types "./Types";
+import D "mo:base/Debug";
 
 shared actor class Dip721NFT(custodian : Principal, init : Types.Dip721NonFungibleToken) = Self {
   stable var transactionId : Types.TransactionId = 0;
@@ -56,16 +57,24 @@ shared actor class Dip721NFT(custodian : Principal, init : Types.Dip721NonFungib
 
   func transferFrom(from : Principal, to : Principal, token_id : Types.TokenId, caller : Principal) : Types.TxReceipt {
     let item = List.find(nfts, func(token : Types.Nft) : Bool { token.id == token_id });
+    // D.print(debug_show (("caller:", caller)));
+    // D.print(debug_show (("CUSTODIANS:", custodians)));
+    // D.print(debug_show (("from:", from)));
+    // D.print(debug_show (("to:", to)));
+
     switch (item) {
       case null {
         return #Err(#InvalidTokenId);
       };
       case (?token) {
         if (
+          // Only Custodians are able to transfer tokens past the initial minting
           not List.some(custodians, func(custodian : Principal) : Bool { custodian == caller }),
         ) {
+          D.print(debug_show (("Throwing error for custodian validation")));
           return #Err(#Unauthorized);
         } else if (Principal.notEqual(from, token.owner)) {
+          D.print(debug_show (("Not equal to principal error")));
           return #Err(#Other);
         } else {
           nfts := List.map(
@@ -171,3 +180,5 @@ shared actor class Dip721NFT(custodian : Principal, init : Types.Dip721NonFungib
     });
   };
 };
+
+// TODO:

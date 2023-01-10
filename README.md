@@ -204,3 +204,12 @@ Verify that this is the same principal that you ran `mintDip721` with:
 ```
 dfx identity get-principal
 ```
+
+
+### TODO
+
+- Implement burn interface
+  - burn interface should only be valid for the custodians or owner of the specific token
+
+- Add transfer failure cases to demo.sh
+- Add burn cases to demo.sh
