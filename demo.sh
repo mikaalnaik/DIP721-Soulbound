@@ -59,9 +59,29 @@ dfx canister call dip721_nft_container mintDip721 \
   }
 )"
 
+dfx identity use mikaal
 
+
+# Transfer Tests
+echo "Transfer from Mikaal to Alice"
 dfx canister call dip721_nft_container transferFromDip721 "(principal\"$MIKAAL\", principal\"$ALICE\", 0)"
+echo 'Transfer from Alice To Bob'
 dfx canister call dip721_nft_container safeTransferFromDip721 "(principal\"$ALICE\", principal\"$BOB\", 0)"
+echo "Balance of the Principal"
 dfx canister call dip721_nft_container balanceOfDip721 "(principal\"$(dfx identity get-principal)\")"
 
+# Burn Tests
+echo "balance of mikaal"
+dfx canister call dip721_nft_container balanceOfDip721 "(principal\"$MIKAAL\")"
+
+dfx canister call dip721_nft_container burn "(principal\"$MIKAAL\",  0)"
+echo "balance of mikaal afterwards"
+dfx canister call dip721_nft_container balanceOfDip721 "(principal\"$MIKAAL\")"
+
 echo "DONE"
+
+
+
+
+# dfx canister call dip721_nft_container transferFromDip721 "(principal\"$(dfx identity get-principal)\", principal\"sf4in-o2su2-iahwt-m3bdy-7wkiy-vs2rt-levtm-zgqsq-tab7p-yu4fg-faeALICE=sf4in-o2su2-iahwt-m3bdy-7wkiy-vs2rt-levtm-zgqsq-tab7p-yu4fg-fae\", 0)"
+

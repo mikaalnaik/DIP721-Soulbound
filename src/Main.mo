@@ -57,18 +57,19 @@ shared actor class Dip721NFT(custodian : Principal, init : Types.Dip721NonFungib
 
   func transferFrom(from : Principal, to : Principal, token_id : Types.TokenId, caller : Principal) : Types.TxReceipt {
     let item = List.find(nfts, func(token : Types.Nft) : Bool { token.id == token_id });
-    // D.print(debug_show (("caller:", caller)));
-    // D.print(debug_show (("CUSTODIANS:", custodians)));
-    // D.print(debug_show (("from:", from)));
-    // D.print(debug_show (("to:", to)));
+    D.print(debug_show (("Firing Transfer From")));
+    D.print(debug_show (("To:", to)));
+    D.print(debug_show (("From:", from)));
+    D.print(debug_show (("token_id:", token_id)));
+    D.print(debug_show (("caller:", caller)));
 
     switch (item) {
       case null {
+        D.print(debug_show (("Throwing error Null NFT")));
         return #Err(#InvalidTokenId);
       };
       case (?token) {
         if (
-          // Only Custodians are able to transfer tokens past the initial minting
           not List.some(custodians, func(custodian : Principal) : Bool { custodian == caller }),
         ) {
           D.print(debug_show (("Throwing error for custodian validation")));
@@ -95,6 +96,43 @@ shared actor class Dip721NFT(custodian : Principal, init : Types.Dip721NonFungib
           transactionId += 1;
           return #Ok(transactionId);
         };
+      };
+    };
+  };
+
+  public shared ({ caller }) func burn(from : Principal, token_id : Types.TokenId) : async Types.TxReceipt {
+    return await burnToken(from, token_id, caller);
+  };
+
+  func burnToken(from : Principal, token_id : Types.TokenId, caller : Principal) : async Types.TxReceipt {
+    let to = null_address;
+    let item = List.find(nfts, func(token : Types.Nft) : Bool { token.id == token_id });
+
+    switch (item) {
+      case (null) {
+        return #Err(#InvalidTokenId);
+      };
+      case (?token) {
+        if (caller == token.owner) {
+          nfts := List.map(
+            nfts,
+            func(item : Types.Nft) : Types.Nft {
+              if (item.id == token.id) {
+                let update : Types.Nft = {
+                  owner = to;
+                  id = item.id;
+                  metadata = token.metadata;
+                };
+                return update;
+              } else {
+                return item;
+              };
+            },
+          );
+          transactionId += 1;
+          return #Ok(transactionId);
+        };
+        return #Err(#InvalidTokenId);
       };
     };
   };
@@ -180,5 +218,3 @@ shared actor class Dip721NFT(custodian : Principal, init : Types.Dip721NonFungib
     });
   };
 };
-
-// TODO:
